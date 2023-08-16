@@ -32,9 +32,7 @@ jobs:
         with:
           context: ./typescript/
           push: true
-          tags:
-            - ${{ env.REPO_NAME }}:${{ env.IMAGE_NAME }}:${{ github.sha }}
-            - ${{ env.REPO_NAME }}:${{ env.IMAGE_NAME }}:latest
+          tags: ${{ env.REPO_NAME }}:${{ env.IMAGE_NAME }}:${{ github.sha }}, ${{ env.REPO_NAME }}:${{ env.IMAGE_NAME }}:latest
 
       - name: Log out of GitHub Container Registry
         run: docker logout ghcr.io
