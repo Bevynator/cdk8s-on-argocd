@@ -7,7 +7,6 @@ on:
 
 env:
   REPO_NAME: ghcr.io/Bevynator/cdk8s-on-argocd
-  IMAGE_NAME: cdk8s-on-argocd
 
 jobs:
   build-and-push:
@@ -32,7 +31,7 @@ jobs:
         with:
           context: ./typescript/
           push: true
-          tags: ${{ env.REPO_NAME }}:${{ env.IMAGE_NAME }}:${{ github.sha }}, ${{ env.REPO_NAME }}:${{ env.IMAGE_NAME }}:latest
+          tags: ${{ env.REPO_NAME }}:${{ github.sha }}, ${{ env.REPO_NAME }}:latest
 
       - name: Log out of GitHub Container Registry
         run: docker logout ghcr.io
