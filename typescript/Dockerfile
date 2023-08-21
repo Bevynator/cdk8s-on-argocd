@@ -3,6 +3,10 @@ FROM argoproj/argocd:latest
 # Switch to root for the ability to perform install
 USER root
 
+# Set repositories to Ubuntu's 'focal' release
+RUN echo "deb http://archive.ubuntu.com/ubuntu/ focal main restricted" > /etc/apt/sources.list && \
+    echo "deb http://archive.ubuntu.com/ubuntu/ focal-updates main restricted" >> /etc/apt/sources.list
+
 RUN apt-get update && apt-get install -y curl
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
