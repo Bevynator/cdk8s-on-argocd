@@ -10,7 +10,7 @@ RUN npm install -g typescript cdk8s-cli cdk8s cdk8s-plus-27 constructs @types/no
 RUN echo $HOME
 
 # Fix NPM cache folder permissions
-RUN chown -R 999:0 /home/node
+RUN mkdir -p /.npm && chown -R 999:0 /.npm
 
 # Switch back to non-root user
 USER 999
