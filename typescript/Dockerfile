@@ -7,8 +7,10 @@ RUN apk add --no-cache make gcc g++ python3 curl
 # Install cdk8s
 RUN npm install -g typescript cdk8s-cli cdk8s cdk8s-plus-27 constructs @types/node @types/jest jest ts-jest ts-node
 
+RUN echo $HOME
+
 # Fix NPM cache folder permissions
-RUN chown -R 999:0 "/.npm"
+RUN chown -R 999:0 /home/node
 
 # Switch back to non-root user
 USER 999
