@@ -17,6 +17,10 @@ RUN echo $HOME
 # Fix NPM cache folder permissions
 RUN mkdir -p /.npm && chown -R 999:0 /.npm
 
+# Add your configuration file to the image
+COPY ./plugin.yaml /home/argocd/cmp-server/config/plugin.yaml
+
+
 ENV HOME=/home/node
 
 # Switch back to non-root user

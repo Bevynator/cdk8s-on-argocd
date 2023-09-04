@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ConfigManagementPlugin
+metadata:
+  name: cdk8s
+spec:
+  discover:
+    find:
+      command:
+        - "sh"
+        - "-c"
+        - "find . -name 'cdk8s.yaml' -o -name '${local.infra_subfolder}cdk8s.yaml'"
+  init:
+    command: ["sh"]
+    args:
+      - -c
+      - |
+        export CLUSTER_NAME=${var.cluster_name}; 
+        if [ -d '${local.infra_subfolder}' ]; then 
+          cd ${local.infra_subfolder}; 
+        fi;
+        npm install && npm run build;
+  generate:
+    command: [sh, -c]
+    args:
+      - |
+        if [ -f 'dist/final.yaml' ]; then
+          rm 'dist/final.yaml'
+        fi
+        temp_file=$(mktemp)
+        for file in dist/*.yaml; do
+          if [[ -s "$file" ]]; then  # Check if file is not empty
+            cat "$file"
+            echo '---'
+          fi
+        done > "$temp_file"
+        mv "$temp_file" dist/final.yaml
+        # Write the aggregated content to a log file in /tmp
+        cp dist/final.yaml "/tmp/final_yaml_$ARGOCD_APP_REVISION.log"
