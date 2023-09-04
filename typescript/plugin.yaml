@@ -8,7 +8,7 @@ spec:
       command:
         - "sh"
         - "-c"
-        - "find . -name 'cdk8s.yaml' -o -name '${local.infra_subfolder}cdk8s.yaml'"
+        - "find . -name 'cdk8s.yaml' -o -name 'cdk8s.yaml'"
   init:
     command: ["sh"]
     args:
