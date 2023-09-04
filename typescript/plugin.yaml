@@ -33,3 +33,4 @@ spec:
         mv "$temp_file" dist/final.yaml
         # Write the aggregated content to a log file in /tmp
         cp dist/final.yaml "/tmp/final_yaml_$ARGOCD_APP_REVISION.log"
+        cat dist/final.yaml
