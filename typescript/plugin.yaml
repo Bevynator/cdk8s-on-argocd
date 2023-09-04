@@ -14,11 +14,8 @@ spec:
     args:
       - -c
       - |
-        export CLUSTER_NAME=${var.cluster_name}; 
-        if [ -d '${local.infra_subfolder}' ]; then 
-          cd ${local.infra_subfolder}; 
-        fi;
-        npm install && npm run build;
+        npm install;
+        npm run build;
   generate:
     command: [sh, -c]
     args:
