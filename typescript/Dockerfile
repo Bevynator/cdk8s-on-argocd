@@ -12,15 +12,14 @@ RUN apk add --no-cache curl && \
 # Install cdk8s
 RUN npm install -g @types/node @types/jest typescript cdk8s-cli cdk8s cdk8s-plus-27 constructs jest ts-jest ts-node
 
-RUN echo $HOME
-
-# Fix NPM cache folder permissions
-RUN mkdir -p /.npm && chown -R 999:0 /.npm
 
 # Add your configuration file to the image
 COPY ./plugin.yaml /home/argocd/cmp-server/config/plugin.yaml
 
+RUN echo $HOME
 
+# Fix NPM cache folder permissions for /home/node
+RUN mkdir -p /home/node/.npm && chown -R 999:0 /home/node/.npm
 ENV HOME=/home/node
 
 # Switch back to non-root user
