@@ -2,7 +2,7 @@
 FROM node:20-alpine
 
 # Add system packages required for native dependencies
-RUN apk add --no-cache make gcc g++ python3 curl jq
+RUN apk add --no-cache make gcc g++ python3 curl jq rsync
 
 # Install yq
 RUN curl -L https://github.com/mikefarah/yq/releases/download/v4.35.1/yq_linux_amd64 -o /usr/bin/yq && \
