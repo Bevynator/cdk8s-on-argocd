@@ -16,8 +16,13 @@ COPY ./plugin.yaml /home/argocd/cmp-server/config/plugin.yaml
 
 RUN echo $HOME
 
-# Fix NPM cache folder permissions for /home/node
-RUN mkdir -p /home/node/.npm && chown -R 999:0 /home/node/.npm
+# Create a custom global cache directory and set its permission
+RUN mkdir -p /tmp/npm-cache && chown -R 999:0 /tmp/npm-cache
+
+# Setting custom npm cache directory
+RUN npm config -g set cache /tmp/npm-cache
+
+# Environment variable for home directory
 ENV HOME=/home/node
 
 # Switch back to non-root user
