@@ -14,16 +14,17 @@ RUN npm install -g @types/node @types/jest typescript cdk8s-cli cdk8s cdk8s-plus
 # Add your configuration file to the image
 COPY ./plugin.yaml /home/argocd/cmp-server/config/plugin.yaml
 
-RUN echo $HOME
-
-# Create a custom global cache directory and set its permission
-RUN mkdir -p /tmp/npm-cache && chown -R 999:0 /tmp/npm-cache
-
-# Setting custom npm cache directory
-RUN npm config -g set cache /tmp/npm-cache
-
 # Environment variable for home directory
 ENV HOME=/home/node
+
+# Create npm-cache directory in the home directory
+RUN mkdir -p $HOME/npm-cache
+
+# Set npm cache directory
+RUN npm config -g set cache $HOME/npm-cache
+
+# Adjust permissions for /home/node recursively
+RUN chown -R 999:0 $HOME
 
 # Switch back to non-root user
 USER 999

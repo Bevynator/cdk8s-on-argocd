@@ -8,29 +8,91 @@ spec:
       command:
         - "sh"
         - "-c"
-        - "find . -name 'cdk8s.yaml' -o -name 'cdk8s.yaml'"
+        - "find . -maxdepth 2 -name 'cdk8s.yaml'"
   init:
     command: ["sh"]
     args:
       - -c
       - |
-        npm install;
-        npm run build;
+        LOGGING=true
+        log_file="/home/node/init_log_$ARGOCD_APP_REVISION.log"
+
+        log_conditionally() {
+          if [[ "$LOGGING" == "true" ]]; then
+            tee -a $log_file
+          else
+            cat >/dev/null
+          fi
+        }
+
+        # we do this in order to cache incremental typescript builds, which uses a .tsBuildInfo to track changes to files using their absolute paths
+        mkdir -p /home/node/$ARGOCD_APP_NAME/src
+        rsync -a --progress --delete ./ /home/node/$ARGOCD_APP_NAME/src
+        cd /home/node/$ARGOCD_APP_NAME/src
+
+        # NPM cache configuration
+        echo "Initializing: Starting npm cache config..." | log_conditionally
+        npm config set cache /home/node/npm-cache
+        echo "Completed npm cache config in 1 seconds." | log_conditionally
+
+        # NPM Install
+        echo "Initializing: Starting npm install (npm ci)..." | log_conditionally
+        start_time=$(date +%s)
+        npm ci | log_conditionally
+        end_time=$(date +%s)
+        echo "Completed npm install (npm ci) in $((end_time - start_time)) seconds." | log_conditionally
+
+        # Modify tsconfig.json
+        jq '.compilerOptions += {"outDir": "/home/node/'"$ARGOCD_APP_NAME"'/dist", "incremental": true, "tsBuildInfoFile": "/home/node/'"$ARGOCD_APP_NAME"'/.tsbuildinfo"}' tsconfig.json > tsconfig_tmp.json && mv tsconfig_tmp.json tsconfig.json
+        echo "Printing tsconfig.json content for verification:" | log_conditionally
+        cat tsconfig.json | log_conditionally
+
+        # Compile TypeScript
+        echo "Initializing: Starting npm run compile..." | log_conditionally
+        start_time=$(date +%s)
+        npm run compile | log_conditionally
+        end_time=$(date +%s)
+        echo "Completed npm run compile in $((end_time - start_time)) seconds." | log_conditionally
+
+        # Synthesize CDK
+        echo "Initializing: Starting npm run synth..." | log_conditionally
+        start_time=$(date +%s)
+        npm run synth | log_conditionally
+        end_time=$(date +%s)
+        echo "Completed npm run synth in $((end_time - start_time)) seconds." | log_conditionally
   generate:
     command: [sh, -c]
     args:
       - |
-        if [ -f 'dist/final.yaml' ]; then
-          rm 'dist/final.yaml'
+        LOGGING=true
+        log_file="/home/node/generate_log_$ARGOCD_APP_REVISION.log"
+
+        log_conditionally() {
+          if [[ "$LOGGING" == "true" ]]; then
+            log_conditionally
+          else
+            cat >/dev/null
+          fi
+        }
+
+        echo "Generating: Starting aggregation of YAML files..." | log_conditionally
+        start_time=$(date +%s)
+        if [ -f '/home/node/$ARGOCD_APP_NAME/src/dist/final.yaml' ]; then
+          echo "Existing /home/node/$ARGOCD_APP_NAME/src/dist/final.yaml found. Removing..." | log_conditionally
+          rm '/home/node/$ARGOCD_APP_NAME/src/dist/final.yaml'
         fi
         temp_file=$(mktemp)
-        for file in dist/*.yaml; do
+        for file in /home/node/$ARGOCD_APP_NAME/src/dist/*.yaml; do
           if [[ -s "$file" ]]; then  # Check if file is not empty
             cat "$file"
             echo '---'
           fi
         done > "$temp_file"
-        mv "$temp_file" dist/final.yaml
-        # Write the aggregated content to a log file in /tmp
-        cp dist/final.yaml "/tmp/final_yaml_$ARGOCD_APP_REVISION.log"
-        cat dist/final.yaml
+        mv "$temp_file" /home/node/$ARGOCD_APP_NAME/src/dist/final.yaml
+        end_time=$(date +%s)
+        echo "Generating: Aggregated YAML files in $((end_time - start_time)) seconds." | log_conditionally
+        echo "Generating: Saving as /home/node/$ARGOCD_APP_NAME/src/dist/final.yaml..." | log_conditionally
+        # Write the aggregated content to a log file in /home/node
+        echo "Generating: Logging aggregated YAML to /home/node/final_yaml_$ARGOCD_APP_REVISION.log..." | log_conditionally
+        cp /home/node/$ARGOCD_APP_NAME/src/dist/final.yaml "/home/node/final_yaml_$ARGOCD_APP_REVISION.log"
+        cat /home/node/$ARGOCD_APP_NAME/src/dist/final.yaml
